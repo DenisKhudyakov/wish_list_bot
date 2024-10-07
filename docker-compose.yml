@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${USERNAME_BD}
+      POSTGRES_PASSWORD: ${PASSWORD_BD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-U', 'postgres' ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
