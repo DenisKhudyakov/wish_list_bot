@@ -54,3 +54,10 @@ place_keyboard = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Ссылка на заведение", url="https://vchudopark.ru/")]
     ]
 )
+
+cancel_place_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Отмена", callback_data="cancel")]
+    ]
+)
+

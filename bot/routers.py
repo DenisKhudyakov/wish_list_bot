@@ -2,15 +2,19 @@ import os
 import re
 
 from aiogram import F, Router, types
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import FSInputFile
 
-from bd.crud import (add_gift, delete_gift, get_all_gifts, get_id_gift,
-                     reserve_gift)
-from bot.keyboard import (cancel_keyboard, get_gifts, main_keyboard,
-                          place_keyboard, reserve_and_delete_keyboard)
+from bd.crud import add_gift, delete_gift, get_all_gifts, get_id_gift, reserve_gift
+from bot.keyboard import (
+    cancel_keyboard,
+    get_gifts,
+    main_keyboard,
+    place_keyboard,
+    reserve_and_delete_keyboard, cancel_place_keyboard,
+)
 from config.config import DEFAULT_COMMANDS
 
 router = Router()
@@ -72,6 +76,7 @@ class GiftStates(StatesGroup):
     """
     Класс для обработки состояний
     """
+
     waiting_for_name = State()
     waiting_for_link = State()
 
@@ -87,7 +92,7 @@ async def add_gift_handler(message: types.Message, state: FSMContext):
     await state.set_state(GiftStates.waiting_for_name)
     await message.answer(
         "Введите название подарка или нажмите 'Отмена' для отмены действия:",
-        reply_markup=cancel_keyboard,
+        reply_markup=cancel_place_keyboard,
     )
 
 
@@ -103,7 +108,7 @@ async def enter_name(message: types.Message, state: FSMContext):
     await state.set_state(GiftStates.waiting_for_link)
     await message.answer(
         "Введите ссылку на подарок или нажмите 'Отмена' для отмены действия:",
-        reply_markup=cancel_keyboard,
+        reply_markup=cancel_place_keyboard,
     )
 
 
@@ -127,16 +132,24 @@ async def enter_link(message: types.Message, state: FSMContext):
     await message.answer("Подарок добавлен", reply_markup=main_keyboard)
 
 
-@router.message(F.text == "Отмена")
-async def cancel_handler(message: types.Message, state: FSMContext):
+@router.callback_query(lambda c: c.data and c.data.startswith("cancel"))
+async def cancel_handler(callback_query: types.CallbackQuery, state: FSMContext):
     """
     Функция для обработки отмены действия
     :param message:
     :param state:
     :return:
     """
-    await state.clear()
-    await message.answer("Действие отменено", reply_markup=main_keyboard)
+    command = callback_query.data.split("_")[0]
+    current_state = await state.get_state()
+    if current_state and command:
+        await state.clear()
+        await callback_query.answer(text="Действие отменено", reply_markup=main_keyboard)
+        await callback_query.message.delete()
+    else:
+        await callback_query.answer(
+            "Нет активного действия для отмены", reply_markup=main_keyboard
+        )
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("gift_"))
@@ -205,7 +218,10 @@ async def get_gift_list(message: types.Message):
         await message.answer("Список подарков пуст, добавьте подарки")
     else:
         gifts_list = "\n".join(
-            [f"{gift.name} - {gift.link} Статус: {'Зарезервирован' if gift.reserved else 'Свободен для выбора'}" for gift in gifts]
+            [
+                f"{gift.name} - {gift.link} Статус: {'Зарезервирован' if gift.reserved else 'Свободен для выбора'}"
+                for gift in gifts
+            ]
         )
         await message.answer(
             "Список подарков:\n" + gifts_list,
