@@ -13,7 +13,8 @@ from bot.keyboard import (
     get_gifts,
     main_keyboard,
     place_keyboard,
-    reserve_and_delete_keyboard, cancel_place_keyboard,
+    reserve_and_delete_keyboard,
+    cancel_place_keyboard,
 )
 from config.config import DEFAULT_COMMANDS
 
@@ -123,7 +124,9 @@ async def enter_link(message: types.Message, state: FSMContext):
     link = message.text
     pattern = r"^https?:\/\/(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?$"
     if not re.match(pattern, link):
-        await message.answer("Некорректная ссылка, повторите попытку", reply_markup=cancel_place_keyboard)
+        await message.answer(
+            "Некорректная ссылка, повторите попытку", reply_markup=cancel_place_keyboard
+        )
         return
     user_data = await state.get_data()
     name = user_data["name"]
@@ -144,7 +147,9 @@ async def cancel_handler(callback_query: types.CallbackQuery, state: FSMContext)
     current_state = await state.get_state()
     if current_state and command:
         await state.clear()
-        await callback_query.answer(text="Действие отменено", reply_markup=main_keyboard)
+        await callback_query.answer(
+            text="Действие отменено", reply_markup=main_keyboard
+        )
         await callback_query.message.delete()
     else:
         await callback_query.answer(
@@ -177,7 +182,9 @@ async def delete_gift_handler(callback_query: types.CallbackQuery):
     gift_id = int(callback_query.data.split("_")[1])
     await delete_gift(gift_id)
     await callback_query.message.delete()
-    await callback_query.message.answer(text="Подарок удален", reply_markup=main_keyboard)
+    await callback_query.message.answer(
+        text="Подарок удален", reply_markup=main_keyboard
+    )
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("reserve_"))
@@ -190,7 +197,9 @@ async def reserve_gift_handler(callback_query: types.CallbackQuery):
     gift_id = int(callback_query.data.split("_")[1])
     await reserve_gift(gift_id)
     await callback_query.message.delete()
-    await callback_query.message.answer(text="Подарок зарезервирован", reply_markup=main_keyboard)
+    await callback_query.message.answer(
+        text="Подарок зарезервирован", reply_markup=main_keyboard
+    )
 
 
 @router.message(F.text == "Время и место мероприятия")

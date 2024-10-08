@@ -1,5 +1,9 @@
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 main_keyboard = ReplyKeyboardMarkup(
@@ -56,8 +60,5 @@ place_keyboard = InlineKeyboardMarkup(
 )
 
 cancel_place_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="Отмена", callback_data="cancel")]
-    ]
+    inline_keyboard=[[InlineKeyboardButton(text="Отмена", callback_data="cancel")]]
 )
-
